@@ -224,10 +224,33 @@ export const sendChatMessage = async (order, messageText) => {
 
   // Update last message in the parent chat document
   const chatDocRef = doc(db, 'chats', chatId);
+  const chatDocSnap = await getDoc(chatDocRef);
+  let participantDetails = {};
+
+  if (chatDocSnap.exists() && chatDocSnap.data().participantDetails) {
+    participantDetails = chatDocSnap.data().participantDetails;
+  } else {
+    // Fetch details
+    const homeownerDocSnap = await getDoc(doc(db, "users", order.homeownerId));
+    const proDocSnap = await getDoc(doc(db, "users", order.professionalId));
+    
+    participantDetails = {
+      [order.homeownerId]: {
+        name: homeownerDocSnap.exists() ? homeownerDocSnap.data().fullName : "Homeowner",
+        avatar: homeownerDocSnap.exists() ? homeownerDocSnap.data().profileImage : null
+      },
+      [order.professionalId]: {
+        name: proDocSnap.exists() ? proDocSnap.data().fullName : "Professional",
+        avatar: proDocSnap.exists() ? proDocSnap.data().profileImage : null
+      }
+    };
+  }
+
   await setDoc(chatDocRef, {
     lastMessage: messageText,
     lastMessageTime: serverTimestamp(),
-    participants: [order.homeownerId, order.professionalId]
+    participants: [order.homeownerId, order.professionalId],
+    participantDetails
   }, { merge: true });
   
   return []; // onSnapshot will update the UI
