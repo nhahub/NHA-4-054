@@ -12,28 +12,9 @@ import HomeownerBottomNav from '../../components/homeowner/HomeownerBottomNav';
 export default function HomeownerDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [userData, setUserData] = useState({ initials: 'JD', location: 'Cairo, Nasr City', profileImage: null });
-  const [services, setServices] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
   const [isStartingChat, setIsStartingChat] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const servicesSnapshot = await getDocs(collection(db, "services"));
-        const servicesList = servicesSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setServices(servicesList);
-      } catch (error) {
-        console.error("Error fetching services: ", error);
-      }
-    };
-
-    fetchServices();
-  }, []);
-
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
