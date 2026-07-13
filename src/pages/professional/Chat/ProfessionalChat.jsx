@@ -46,7 +46,7 @@ export default function ProfessionalChat() {
   const filterPhoneNumber = (text) => {
     // Matches 11-digit numbers, numbers starting with +20, or just sequences of 10+ digits
     const phoneRegex = /(?:\+?20\s*[-.]?\s*0?|0)?1[0125]\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d|\d{10,}/g;
-    return text.replace(phoneRegex, '[تم إخفاء الرقم لحماية الخصوصية]');
+    return text.replace(phoneRegex, '[Phone number hidden for privacy]');
   };
 
   useEffect(() => {

@@ -282,7 +282,7 @@ export const sendChatMessage = async (order, messageText) => {
   if (!isFirebaseConfigured || !order || !auth.currentUser) return [];
 
   const phoneRegex = /(?:\+?20\s*[-.]?\s*0?|0)?1[0125]\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d|\d{10,}/g;
-  const filteredText = messageText.replace(phoneRegex, '[تم إخفاء الرقم لحماية الخصوصية]');
+  const filteredText = messageText.replace(phoneRegex, '[Phone number hidden for privacy]');
 
   const chatId = `${order.requestId}_${order.professionalId}`;
   const messagesRef = collection(db, "chats", chatId, "messages");
