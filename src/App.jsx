@@ -5,7 +5,6 @@ import { Toaster } from 'react-hot-toast';
 // Pages
 import Home from './pages/Home';
 import Auth from './pages/auth/Auth';
-import UpdatePassword from './pages/auth/UpdatePassword';
 
 // Homeowner Pages
 import HomeownerDashboard from './pages/homeowner/HomeownerDashboard';
@@ -46,7 +45,6 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Auth />} />
         <Route path="/login" element={<Auth />} />
-        <Route path="/update-password" element={<UpdatePassword />} />
         
         <Route path="/dashboard" element={<HomeownerDashboard />} />
         <Route path="/create-request" element={<CreateRequest />} />

@@ -199,12 +199,7 @@ export default function Auth() {
         return;
       }
 
-      const actionCodeSettings = {
-        url: `${window.location.origin}/update-password`,
-        handleCodeInApp: true,
-      };
-
-      await sendPasswordResetEmail(auth, formData.email, actionCodeSettings);
+      await sendPasswordResetEmail(auth, formData.email);
       setResetSent(true);
       setErrors({});
     } catch (error) {
