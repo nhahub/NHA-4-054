@@ -281,12 +281,15 @@ export const subscribeToChat = (order, callback) => {
 export const sendChatMessage = async (order, messageText) => {
   if (!isFirebaseConfigured || !order || !auth.currentUser) return [];
 
+  const phoneRegex = /(?:\+?20\s*[-.]?\s*0?|0)?1[0125]\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d\s*[-.]?\s*\d|\d{10,}/g;
+  const filteredText = messageText.replace(phoneRegex, '[تم إخفاء الرقم لحماية الخصوصية]');
+
   const chatId = `${order.requestId}_${order.professionalId}`;
   const messagesRef = collection(db, "chats", chatId, "messages");
   
   await addDoc(messagesRef, {
     senderId: auth.currentUser.uid,
-    text: messageText,
+    text: filteredText,
     timestamp: serverTimestamp()
   });
 
@@ -315,7 +318,7 @@ export const sendChatMessage = async (order, messageText) => {
   }
 
   await setDoc(chatDocRef, {
-    lastMessage: messageText,
+    lastMessage: filteredText,
     lastMessageTime: serverTimestamp(),
     participants: [order.homeownerId, order.professionalId],
     participantDetails
