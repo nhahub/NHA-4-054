@@ -7,7 +7,7 @@ import { SplitText } from '../../components/reactbits/SplitText';
 import { BlurText } from '../../components/reactbits/BlurText';
 import { auth, db } from '../../firebase/config';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 
 const COUNTRY_CODES = [
   { code: '+20', country: 'SA', flag: '🇪🇬' },
@@ -188,6 +188,17 @@ export default function Auth() {
     setIsLoading(true);
     setResetSent(false);
     try {
+      // Check if user exists in Firestore
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('email', '==', formData.email));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        setErrors({ email: 'هذا البريد الإلكتروني غير مسجل لدينا.' });
+        setIsLoading(false);
+        return;
+      }
+
       await sendPasswordResetEmail(auth, formData.email);
       setResetSent(true);
       setErrors({});
