@@ -410,6 +410,28 @@ export const submitReview = async (orderId, professionalId, homeownerId, rating,
   }
 };
 
+export const getReviewsByProfessional = async (professionalId) => {
+  if (!isFirebaseConfigured || !professionalId) return [];
+  
+  try {
+    const q = query(
+      collection(db, "reviews"),
+      where("professionalId", "==", professionalId)
+    );
+    const querySnapshot = await getDocs(q);
+    const reviews = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    return reviews.sort((a, b) => {
+      const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return timeB - timeA;
+    });
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    return [];
+  }
+};
+
 // ==============================
 // Utility: Seed Database
 // ==============================

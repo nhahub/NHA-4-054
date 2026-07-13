@@ -1,36 +1,71 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Star, ShieldCheck, MapPin, Wrench, ChevronLeft, Briefcase, ThumbsUp, CheckCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../../firebase/config';
+import { getReviewsByProfessional } from '../../../services/api';
+import { Loader2 } from 'lucide-react';
 
 export default function ProProfileView() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('reviews'); // 'reviews' or 'portfolio'
 
-  const pro = {
-    name: 'Ahmed Al-Ghamdi',
-    title: 'Master Electrician',
-    rating: 4.9,
-    reviewsCount: 128,
-    jobsCompleted: 340,
-    experience: '8 Years',
-    location: 'Cairo, Egypt',
-    bio: 'Professional electrician with 8 years of experience in residential and commercial electrical systems. Certified and insured.',
-    image: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=150&h=150&fit=crop&crop=faces'
-  };
+  const { id } = useParams();
+  const [pro, setPro] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const reviews = [
-    { id: 1, author: 'Sara K.', rating: 5, date: '2 days ago', text: 'Ahmed was very professional and fixed the wiring issue in my kitchen quickly. Highly recommended!', avatar: 'https://i.pravatar.cc/150?img=5' },
-    { id: 2, author: 'Mohammed R.', rating: 5, date: '1 week ago', text: 'Excellent service. Arrived on time and explained everything clearly before starting the work.', avatar: 'https://i.pravatar.cc/150?img=11' },
-    { id: 3, author: 'Faisal A.', rating: 4, date: '2 weeks ago', text: 'Good work, but arrived 15 minutes late. The repair itself was solid though.', avatar: 'https://i.pravatar.cc/150?img=15' },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        // 1. Fetch Pro Details
+        const proDoc = await getDoc(doc(db, "users", id));
+        if (proDoc.exists()) {
+          const data = proDoc.data();
+          setPro({
+            id: proDoc.id,
+            name: data.fullName || 'Professional',
+            title: data.speciality || 'Service Provider',
+            rating: data.rating || 0,
+            reviewsCount: data.reviewsCount || data.reviewCount || 0,
+            jobsCompleted: data.completedJobs || 0,
+            experience: data.experience ? `${data.experience} Years` : 'N/A',
+            location: 'Egypt',
+            bio: data.bio || 'Professional service provider.',
+            image: data.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.fullName || 'Pro')}&background=1f3b6c&color=fff&size=150`
+          });
+        }
+        
+        // 2. Fetch Reviews
+        const fetchedReviews = await getReviewsByProfessional(id);
+        setReviews(fetchedReviews);
+      } catch (error) {
+        console.error("Error fetching pro profile", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    if (id) fetchData();
+  }, [id]);
 
-  const portfolio = [
-    { id: 1, title: 'Smart Home Wiring', img: 'https://images.unsplash.com/photo-1558346490-a72e53ae2d4f?w=400&h=300&fit=crop' },
-    { id: 2, title: 'Panel Upgrade', img: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=300&fit=crop' },
-    { id: 3, title: 'Lighting Installation', img: 'https://images.unsplash.com/photo-1565814329452-e1efa11c5e89?w=400&h=300&fit=crop' },
-    { id: 4, title: 'Circuit Repair', img: 'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=400&h=300&fit=crop' },
-  ];
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F7F5F2] flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-[#c9a765] animate-spin" />
+      </div>
+    );
+  }
+
+  if (!pro) {
+    return (
+      <div className="min-h-screen bg-[#F7F5F2] flex items-center justify-center">
+        <p className="text-xl font-bold text-slate-500">Professional not found.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F7F5F2] font-sans pb-32">
@@ -105,43 +140,43 @@ export default function ProProfileView() {
               <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-[#c9a765] rounded-t-full" />
             )}
           </button>
-          <button 
-            onClick={() => setActiveTab('portfolio')}
-            className={`pb-3 text-sm font-bold transition-colors relative ${activeTab === 'portfolio' ? 'text-[#1f3b6c]' : 'text-slate-400 hover:text-slate-600'}`}
-          >
-            Portfolio
-            {activeTab === 'portfolio' && (
-              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-[#c9a765] rounded-t-full" />
-            )}
-          </button>
         </div>
 
         {/* Tab Content */}
         <div className="mt-6">
           {activeTab === 'reviews' ? (
             <div className="space-y-4">
-              {reviews.map(review => (
-                <div key={review.id} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex gap-3 items-center">
-                      <img src={review.avatar} alt={review.author} className="w-10 h-10 rounded-full object-cover" />
-                      <div>
-                        <h4 className="font-bold text-slate-800 text-sm">{review.author}</h4>
-                        <span className="text-xs text-slate-400">{review.date}</span>
+              {reviews.length > 0 ? reviews.map(review => {
+                const dateStr = review.createdAt?.toDate 
+                  ? new Date(review.createdAt.toDate()).toLocaleDateString()
+                  : '';
+                return (
+                  <div key={review.id} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex gap-3 items-center">
+                        <img src={review.homeownerAvatar} alt={review.homeownerName} className="w-10 h-10 rounded-full object-cover bg-slate-100" />
+                        <div>
+                          <h4 className="font-bold text-slate-800 text-sm">{review.homeownerName}</h4>
+                          <span className="text-xs text-slate-400">{dateStr} • {review.serviceName}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-0.5">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'text-[#c9a765] fill-[#c9a765]' : 'text-slate-200'}`} />
+                        ))}
                       </div>
                     </div>
-                    <div className="flex gap-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'text-[#c9a765] fill-[#c9a765]' : 'text-slate-200'}`} />
-                      ))}
+                    <p className="text-slate-600 text-sm">{review.reviewText}</p>
+                    <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-blue-600 cursor-pointer transition-colors w-max">
+                      <ThumbsUp className="w-3 h-3" /> Helpful
                     </div>
                   </div>
-                  <p className="text-slate-600 text-sm">{review.text}</p>
-                  <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-blue-600 cursor-pointer transition-colors w-max">
-                    <ThumbsUp className="w-3 h-3" /> Helpful
-                  </div>
+                );
+              }) : (
+                <div className="text-center p-8 bg-white rounded-2xl border border-slate-100 shadow-sm text-slate-400 font-medium">
+                  No reviews yet.
                 </div>
-              ))}
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3">
